@@ -5,7 +5,480 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SERVI_CHOCO — Turismo Regenerativo</title>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="css/styles.css">
+    <style>
+        /* ===== BUSCADOR / COTIZADOR ===== */
+        .search-booking {
+            background: linear-gradient(135deg, #0a2a1a 0%, #1a4a2a 100%);
+            padding: 60px 20px;
+        }
+        .search-booking .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .search-title {
+            text-align: center;
+            color: #f0e8d0;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2.8rem;
+            margin-bottom: 0.3rem;
+        }
+        .search-title em { color: #a8d5a2; font-style: italic; }
+        .search-sub {
+            text-align: center;
+            color: #a0b8a0;
+            margin-bottom: 2.5rem;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 300;
+        }
+        .search-form {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(168,213,162,0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr auto;
+            gap: 1rem;
+            align-items: end;
+        }
+        .form-group label {
+            display: block;
+            color: #a8d5a2;
+            font-size: 0.75rem;
+            font-family: 'Outfit', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.5rem;
+        }
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(168,213,162,0.3);
+            border-radius: 10px;
+            color: #f0e8d0;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.3s;
+            box-sizing: border-box;
+        }
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: #a8d5a2;
+        }
+        .form-group select option { background: #1a4a2a; color: #f0e8d0; }
+        .btn-search {
+            background: linear-gradient(135deg, #2d7a3a, #4aab5a);
+            color: white;
+            border: none;
+            padding: 0.85rem 2rem;
+            border-radius: 10px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        .btn-search:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(74,171,90,0.4); }
+
+        /* MODAL COTIZACIÓN */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-box {
+            background: linear-gradient(135deg, #0d2e1a, #1a4a2a);
+            border: 1px solid rgba(168,213,162,0.3);
+            border-radius: 20px;
+            padding: 2.5rem;
+            max-width: 520px;
+            width: 100%;
+            position: relative;
+            animation: modalIn 0.3s ease;
+        }
+        @keyframes modalIn { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-close {
+            position: absolute;
+            top: 1rem; right: 1.5rem;
+            background: none; border: none;
+            color: #a8d5a2; font-size: 1.5rem;
+            cursor: pointer; line-height: 1;
+        }
+        .modal-box h3 { color: #f0e8d0; font-family: 'Cormorant Garamond', serif; font-size: 2rem; margin-bottom: 0.3rem; }
+        .modal-box h3 em { color: #a8d5a2; }
+        .modal-detail { display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid rgba(168,213,162,0.1); color: #c0d8c0; font-family: 'Outfit', sans-serif; font-size: 0.9rem; }
+        .modal-detail strong { color: #f0e8d0; }
+        .modal-total { display: flex; justify-content: space-between; padding: 1rem 0; color: #a8d5a2; font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 1.1rem; }
+        .modal-note { font-size: 0.75rem; color: #80a080; font-family: 'Outfit', sans-serif; margin-bottom: 1.5rem; }
+
+        /* ===== PSE BOTÓN ===== */
+        .pse-section {
+            background: #f5f7f5;
+            padding: 60px 20px;
+            text-align: center;
+        }
+        .pse-card {
+            max-width: 480px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        .pse-card h2 { font-family: 'Cormorant Garamond', serif; font-size: 2rem; color: #1a3a1a; margin-bottom: 0.3rem; }
+        .pse-card h2 em { color: #2d7a3a; }
+        .pse-card p { color: #607060; font-family: 'Outfit', sans-serif; font-size: 0.9rem; margin-bottom: 2rem; }
+        .pse-logos { display: flex; align-items: center; justify-content: center; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .pse-badge {
+            background: linear-gradient(135deg, #003087, #0047ba);
+            color: white;
+            padding: 0.5rem 1.2rem;
+            border-radius: 8px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            letter-spacing: 0.05em;
+        }
+        .secure-badge {
+            display: flex; align-items: center; gap: 0.4rem;
+            color: #2d7a3a; font-family: 'Outfit', sans-serif; font-size: 0.8rem;
+        }
+        .btn-pse {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: linear-gradient(135deg, #003087, #0047ba);
+            color: white;
+            border: none;
+            padding: 1rem 2.5rem;
+            border-radius: 12px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 1.05rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            margin-bottom: 1rem;
+            width: 100%;
+            justify-content: center;
+        }
+        .btn-pse:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,48,135,0.4); }
+        .btn-tarjeta {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: linear-gradient(135deg, #2d7a3a, #4aab5a);
+            color: white;
+            border: none;
+            padding: 1rem 2.5rem;
+            border-radius: 12px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 1.05rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            justify-content: center;
+            margin-bottom: 0.75rem;
+        }
+        .btn-tarjeta:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(45,122,58,0.4); }
+        .pse-disclaimer { font-size: 0.72rem; color: #90a090; font-family: 'Outfit', sans-serif; margin-top: 1rem; }
+
+        /* MODAL PSE */
+        .pse-modal-box {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            max-width: 440px;
+            width: 100%;
+            position: relative;
+            animation: modalIn 0.3s ease;
+        }
+        .pse-modal-box h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; color: #1a3a1a; margin-bottom: 0.3rem; }
+        .pse-modal-box p { color: #607060; font-size: 0.85rem; font-family: 'Outfit', sans-serif; margin-bottom: 1.5rem; }
+        .pse-input-group { margin-bottom: 1rem; }
+        .pse-input-group label { display: block; font-family: 'Outfit', sans-serif; font-size: 0.75rem; color: #607060; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.4rem; }
+        .pse-input-group input, .pse-input-group select {
+            width: 100%; padding: 0.75rem 1rem;
+            border: 1.5px solid #d0e0d0; border-radius: 10px;
+            font-family: 'Outfit', sans-serif; font-size: 0.95rem;
+            outline: none; transition: border-color 0.3s; box-sizing: border-box; color: #1a3a1a;
+        }
+        .pse-input-group input:focus, .pse-input-group select:focus { border-color: #2d7a3a; }
+        .bank-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1.5rem; }
+        .bank-btn {
+            padding: 0.75rem; border: 1.5px solid #d0e0d0; border-radius: 10px;
+            background: white; cursor: pointer; font-family: 'Outfit', sans-serif;
+            font-size: 0.8rem; color: #1a3a1a; transition: all 0.2s; text-align: center;
+        }
+        .bank-btn:hover, .bank-btn.selected { border-color: #2d7a3a; background: #f0faf0; color: #2d7a3a; font-weight: 600; }
+        .btn-confirmar-pse {
+            width: 100%; background: linear-gradient(135deg, #003087, #0047ba);
+            color: white; border: none; padding: 1rem; border-radius: 12px;
+            font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 1rem;
+            cursor: pointer; transition: all 0.3s;
+        }
+        .btn-confirmar-pse:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,48,135,0.3); }
+
+        /* ===== MAPA GIS ===== */
+        .map-section {
+            background: #0a1a0a;
+            padding: 60px 20px;
+        }
+        .map-section .container { max-width: 1200px; margin: 0 auto; }
+        .map-header { text-align: center; margin-bottom: 2rem; }
+        .map-header h2 { font-family: 'Cormorant Garamond', serif; font-size: 3rem; color: #f0e8d0; margin-bottom: 0.3rem; }
+        .map-header h2 em { color: #a8d5a2; font-style: italic; }
+        .map-header p { color: #80a080; font-family: 'Outfit', sans-serif; }
+        .map-wrapper {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 1.5rem;
+            height: 520px;
+        }
+        .map-sidebar {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(168,213,162,0.15);
+            border-radius: 16px;
+            padding: 1.2rem;
+            overflow-y: auto;
+        }
+        .map-sidebar h4 { color: #a8d5a2; font-family: 'Outfit', sans-serif; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem; }
+        .dest-item {
+            padding: 0.7rem 0.9rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 0.4rem;
+            border: 1px solid transparent;
+        }
+        .dest-item:hover, .dest-item.active {
+            background: rgba(168,213,162,0.1);
+            border-color: rgba(168,213,162,0.3);
+        }
+        .dest-item .dest-name { color: #f0e8d0; font-family: 'Outfit', sans-serif; font-size: 0.9rem; font-weight: 600; }
+        .dest-item .dest-type { color: #80a080; font-family: 'Outfit', sans-serif; font-size: 0.75rem; margin-top: 0.1rem; }
+        #choco-map {
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(168,213,162,0.2);
+            height: 100%;
+        }
+
+        /* ===== ASISTENTE IA ===== */
+        .ai-widget {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 999;
+        }
+        .ai-toggle {
+            width: 64px; height: 64px;
+            background: linear-gradient(135deg, #1a5a2a, #2d7a3a);
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 30px rgba(45,122,58,0.5);
+            transition: all 0.3s;
+            font-size: 1.6rem;
+        }
+        .ai-toggle:hover { transform: scale(1.1); box-shadow: 0 12px 40px rgba(45,122,58,0.6); }
+        .ai-chat-window {
+            display: none;
+            position: absolute;
+            bottom: 80px;
+            right: 0;
+            width: 360px;
+            background: linear-gradient(160deg, #0d2e1a, #1a4a2a);
+            border: 1px solid rgba(168,213,162,0.25);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            overflow: hidden;
+            animation: slideUp 0.3s ease;
+        }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .ai-chat-window.open { display: block; }
+        .ai-chat-header {
+            background: rgba(168,213,162,0.1);
+            padding: 1rem 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-bottom: 1px solid rgba(168,213,162,0.15);
+        }
+        .ai-avatar {
+            width: 38px; height: 38px;
+            background: linear-gradient(135deg, #2d7a3a, #4aab5a);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem; flex-shrink: 0;
+        }
+        .ai-info .ai-name { color: #f0e8d0; font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 0.95rem; }
+        .ai-info .ai-status { color: #a8d5a2; font-size: 0.72rem; font-family: 'Outfit', sans-serif; }
+        .ai-close { margin-left: auto; background: none; border: none; color: #80a080; cursor: pointer; font-size: 1.2rem; }
+        .ai-messages {
+            height: 300px;
+            overflow-y: auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .ai-messages::-webkit-scrollbar { width: 4px; }
+        .ai-messages::-webkit-scrollbar-track { background: transparent; }
+        .ai-messages::-webkit-scrollbar-thumb { background: rgba(168,213,162,0.3); border-radius: 2px; }
+        .msg {
+            max-width: 85%;
+            padding: 0.65rem 0.9rem;
+            border-radius: 12px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            animation: msgIn 0.2s ease;
+        }
+        @keyframes msgIn { from { transform: translateY(8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .msg.bot {
+            background: rgba(168,213,162,0.12);
+            color: #d0e8d0;
+            border: 1px solid rgba(168,213,162,0.15);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+        .msg.user {
+            background: linear-gradient(135deg, #2d7a3a, #3a8a4a);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+        .msg.typing { color: #80a080; font-style: italic; }
+        .ai-suggestions {
+            padding: 0.5rem 1rem;
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            border-top: 1px solid rgba(168,213,162,0.1);
+        }
+        .suggestion-chip {
+            background: rgba(168,213,162,0.1);
+            border: 1px solid rgba(168,213,162,0.2);
+            color: #a8d5a2;
+            padding: 0.3rem 0.7rem;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-family: 'Outfit', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .suggestion-chip:hover { background: rgba(168,213,162,0.2); }
+        .ai-input-area {
+            padding: 0.75rem 1rem;
+            display: flex;
+            gap: 0.5rem;
+            border-top: 1px solid rgba(168,213,162,0.1);
+        }
+        .ai-input {
+            flex: 1;
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(168,213,162,0.2);
+            border-radius: 10px;
+            padding: 0.6rem 0.9rem;
+            color: #f0e8d0;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            outline: none;
+        }
+        .ai-input::placeholder { color: #507050; }
+        .ai-input:focus { border-color: rgba(168,213,162,0.5); }
+        .ai-send {
+            background: linear-gradient(135deg, #2d7a3a, #4aab5a);
+            border: none;
+            border-radius: 10px;
+            width: 38px; height: 38px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .ai-send:hover { transform: scale(1.05); }
+        .gemini-badge { font-size: 0.65rem; color: #607060; font-family: 'Outfit', sans-serif; text-align: center; padding: 0.3rem; }
+        .gemini-badge span { color: #a8d5a2; }
+
+        /* ===== FOOTER MEJORADO ===== */
+        .main-footer { background: #071510; color: #c0d8c0; font-family: 'Outfit', sans-serif; }
+        .footer-top-bar { background: linear-gradient(135deg, #1a5a2a, #2d7a3a); padding: 1.5rem 20px; }
+        .footer-top-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+        .footer-top-text span { color: #f0e8d0; font-weight: 600; font-size: 1rem; display: block; }
+        .footer-top-text p { color: rgba(240,232,208,0.7); font-size: 0.82rem; margin: 0.2rem 0 0; }
+        .footer-cta-top { background: rgba(255,255,255,0.15); border: 1.5px solid rgba(255,255,255,0.4); color: white; padding: 0.65rem 1.5rem; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 0.9rem; transition: all 0.3s; white-space: nowrap; }
+        .footer-cta-top:hover { background: rgba(255,255,255,0.25); }
+        .footer-main { padding: 3.5rem 20px 2.5rem; }
+        .footer-grid { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 2.5rem; }
+        .footer-logo { font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; font-weight: 600; color: #f0e8d0; letter-spacing: 0.05em; margin-bottom: 0.75rem; }
+        .footer-logo span { color: #4aab5a; }
+        .footer-desc { color: #809080; font-size: 0.85rem; line-height: 1.7; margin-bottom: 1.5rem; }
+        .footer-socials { display: flex; gap: 0.6rem; }
+        .social-btn { width: 38px; height: 38px; background: rgba(168,213,162,0.08); border: 1px solid rgba(168,213,162,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #a8d5a2; text-decoration: none; transition: all 0.3s; }
+        .social-btn:hover { background: rgba(168,213,162,0.18); border-color: rgba(168,213,162,0.5); color: #f0e8d0; transform: translateY(-2px); }
+        .footer-col-title { color: #f0e8d0; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 600; margin-bottom: 1.2rem; padding-bottom: 0.6rem; border-bottom: 1px solid rgba(168,213,162,0.15); }
+        .footer-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.55rem; }
+        .footer-list a { color: #809080; text-decoration: none; font-size: 0.85rem; transition: color 0.2s; display: block; }
+        .footer-list a:hover { color: #a8d5a2; }
+        .footer-contact-list { list-style: none; padding: 0; margin: 0 0 1.2rem; display: flex; flex-direction: column; gap: 0.9rem; }
+        .footer-contact-list li { display: flex; gap: 0.75rem; align-items: flex-start; }
+        .contact-icon { font-size: 1rem; margin-top: 1px; flex-shrink: 0; }
+        .footer-contact-list span, .footer-contact-list a { color: #809080; font-size: 0.83rem; line-height: 1.5; text-decoration: none; transition: color 0.2s; }
+        .footer-contact-list a:hover { color: #a8d5a2; }
+        .footer-whatsapp-btn { display: inline-flex; align-items: center; gap: 0.4rem; background: linear-gradient(135deg, #1a5a2a, #2d7a3a); color: white; padding: 0.65rem 1.2rem; border-radius: 10px; text-decoration: none; font-size: 0.85rem; font-weight: 600; transition: all 0.3s; }
+        .footer-whatsapp-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(45,122,58,0.4); }
+        .footer-divider { height: 1px; background: linear-gradient(90deg, transparent, rgba(168,213,162,0.15), transparent); margin: 0 20px; }
+        .footer-bottom { padding: 1.5rem 20px; }
+        .footer-bottom-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; }
+        .footer-bottom p { color: #506050; font-size: 0.78rem; }
+        .footer-bottom strong { color: #809080; }
+        .footer-bottom-links { display: flex; align-items: center; gap: 0.5rem; }
+        .footer-bottom-links a { color: #506050; font-size: 0.75rem; text-decoration: none; transition: color 0.2s; }
+        .footer-bottom-links a:hover { color: #a8d5a2; }
+        .footer-bottom-links span { color: #304030; }
+        .footer-allies { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+        .footer-allies span { color: #506050; font-size: 0.75rem; }
+        .footer-allies strong { color: #607060; font-size: 0.75rem; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .search-form { grid-template-columns: 1fr 1fr; }
+            .search-form .btn-search { grid-column: 1 / -1; }
+            .map-wrapper { grid-template-columns: 1fr; height: auto; }
+            .map-sidebar { height: 200px; }
+            #choco-map { height: 350px; }
+            .ai-chat-window { width: 300px; right: -10px; }
+            .footer-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
+            .footer-bottom-inner { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+        }
+        @media (max-width: 480px) {
+            .search-form { grid-template-columns: 1fr; }
+            .footer-grid { grid-template-columns: 1fr; }
+            .footer-top-inner { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
 </head>
 <body>
 
@@ -15,12 +488,12 @@
             <li><a href="#hero">Inicio</a></li>
             <li><a href="#nosotros">Nosotros</a></li>
             <li><a href="#destinos">Destinos</a></li>
+            <li><a href="#mapa">Mapa</a></li>
+            <li><a href="#reservar">Reservar</a></li>
             <li><a href="#aliados">Aliados</a></li>
         </ul>
         <div class="menu-toggle" id="mobile-menu">
-            <span class="bar"></span>
-            <span class="bar"></span>
-            <span class="bar"></span>
+            <span class="bar"></span><span class="bar"></span><span class="bar"></span>
         </div>
     </nav>
 
@@ -29,9 +502,70 @@
             <p class="hero-eyebrow">✦ Guardianes del Territorio</p>
             <h1 class="hero-title">Ríos que fluyen,<br><em>selvas que sanan</em></h1>
             <p class="hero-sub">Turismo comunitario liderado por jóvenes para la restauración ecológica del Chocó.</p>
-            <a href="#destinos" class="btn-primary">Explorar Cuencas</a>
+            <a href="#reservar" class="btn-primary">Explorar & Reservar</a>
         </div>
     </header>
+
+    <!-- ====== 1. BUSCADOR / COTIZADOR ====== -->
+    <section id="reservar" class="search-booking">
+        <div class="container">
+            <h2 class="search-title">Cotiza tu <em>Aventura</em></h2>
+            <p class="search-sub">Busca disponibilidad y reserva tu experiencia en el Chocó</p>
+            <div class="search-form">
+                <div class="form-group">
+                    <label>🌿 Destino</label>
+                    <select id="destino-select">
+                        <option value="">Selecciona destino...</option>
+                        <option value="Tutunendo">Tutunendo (Atrato)</option>
+                        <option value="Nuquí">Nuquí</option>
+                        <option value="Bahía Solano">Bahía Solano</option>
+                        <option value="Bajo Baudó">Bajo Baudó</option>
+                        <option value="Istmina">Istmina (San Juan)</option>
+                        <option value="Quibdó">Quibdó</option>
+                        <option value="Acandí">Acandí</option>
+                        <option value="Riosucio">Riosucio</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>📅 Fecha de llegada</label>
+                    <input type="date" id="fecha-llegada" />
+                </div>
+                <div class="form-group">
+                    <label>📅 Fecha de salida</label>
+                    <input type="date" id="fecha-salida" />
+                </div>
+                <div class="form-group">
+                    <label>👥 Viajeros</label>
+                    <select id="viajeros">
+                        <option value="1">1 persona</option>
+                        <option value="2" selected>2 personas</option>
+                        <option value="3">3 personas</option>
+                        <option value="4">4 personas</option>
+                        <option value="5">5+ personas</option>
+                    </select>
+                </div>
+                <button class="btn-search" onclick="buscarDisponibilidad()">🔍 Buscar</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- MODAL COTIZACIÓN -->
+    <div class="modal-overlay" id="cotizacion-modal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="cerrarModal('cotizacion-modal')">✕</button>
+            <h3>Tu <em>Cotización</em></h3>
+            <p style="color:#80a080;font-family:'Outfit',sans-serif;font-size:0.85rem;margin-bottom:1.5rem;">Resumen de tu experiencia SERVI_CHOCO</p>
+            <div id="cotizacion-detalles"></div>
+            <div class="modal-total">
+                <span>Total estimado</span>
+                <span id="cotizacion-total">COP $0</span>
+            </div>
+            <p class="modal-note">* Precios orientativos. El valor final se confirma al reservar. Incluye guía comunitario, alimentación y transporte fluvial.</p>
+            <button class="btn-pse" onclick="irAPago()" style="margin-top:0.5rem;">
+                💳 Proceder al pago
+            </button>
+        </div>
+    </div>
 
     <section id="nosotros" class="section-white">
         <div class="container">
@@ -51,45 +585,154 @@
     <section id="destinos" class="section-light">
         <div class="container">
             <h2 class="section-title cormorant">Experiencias de <em>Restauración</em></h2>
-            <div id="destContainer" class="dest-grid">
-                </div>
+            <div id="destContainer" class="dest-grid"></div>
         </div>
     </section>
+
     <section class="impact-stats">
-    <div class="container stats-grid">
-        <div class="stat-item">
-            <h2 class="counter" data-target="150">0</h2>
-            <p>Jóvenes Empleados</p>
+        <div class="container stats-grid">
+            <div class="stat-item">
+                <h2 class="counter" data-target="150">0</h2>
+                <p>Jóvenes Empleados</p>
+            </div>
+            <div class="stat-item">
+                <h2 class="counter" data-target="12">0</h2>
+                <p>Cuencas Protegidas</p>
+            </div>
+            <div class="stat-item">
+                <h2 class="counter" data-target="4500">0</h2>
+                <p>Árboles Sembrados</p>
+            </div>
         </div>
-        <div class="stat-item">
-            <h2 class="counter" data-target="12">0</h2>
-            <p>Cuencas Protegidas</p>
-        </div>
-        <div class="stat-item">
-            <h2 class="counter" data-target="4500">0</h2>
-            <p>Árboles Sembrados</p>
-        </div>
-    </div>
-</section>
+    </section>
 
-<section class="community-voices container">
-    <div style="text-align: center; margin-bottom: 4rem;">
-        <h2 class="cormorant" style="font-size: 3rem;">Voces del <em>Territorio</em></h2>
-        <p style="color: var(--text-dim);">Lo que dicen quienes ya viven la experiencia SERVI_CHOCO.</p>
-    </div>
-    
-    <div class="testimonial-card">
-        <div class="quote-icon">“</div>
-        <p class="quote-text">A través de SERVI_CHOCO, los jóvenes de Tutunendo no solo somos guías, somos los guardianes de nuestra propia agua. El turismo nos dio una razón para quedarnos y proteger.</p>
-        <div class="quote-author">
-            <strong>— Yeison Rivas</strong>
-            <span>Guía Comunitario, Tutunendo</span>
+    <!-- ====== 3. MAPA GIS ====== -->
+    <section id="mapa" class="map-section">
+        <div class="container">
+            <div class="map-header">
+                <h2 class="cormorant">Explora el <em>Territorio</em></h2>
+                <p>Municipios y destinos turísticos del Departamento del Chocó</p>
+            </div>
+            <div class="map-wrapper">
+                <div class="map-sidebar">
+                    <h4>📍 Destinos Principales</h4>
+                    <div id="dest-list"></div>
+                </div>
+                <div id="choco-map"></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="community-voices container">
+        <div style="text-align:center;margin-bottom:4rem;">
+            <h2 class="cormorant" style="font-size:3rem;">Voces del <em>Territorio</em></h2>
+            <p style="color:var(--text-dim);">Lo que dicen quienes ya viven la experiencia SERVI_CHOCO.</p>
+        </div>
+        <div class="testimonial-card">
+            <div class="quote-icon">"</div>
+            <p class="quote-text">A través de SERVI_CHOCO, los jóvenes de Tutunendo no solo somos guías, somos los guardianes de nuestra propia agua. El turismo nos dio una razón para quedarnos y proteger.</p>
+            <div class="quote-author">
+                <strong>— Yeison Rivas</strong>
+                <span>Guía Comunitario, Tutunendo</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ====== 2. PSE - PAGO ====== -->
+    <section id="pago" class="pse-section">
+        <div class="pse-card">
+            <h2>Paga tu <em>Reserva</em></h2>
+            <p>Transacciones 100% seguras a través de PSE y tarjetas débito/crédito</p>
+            <div class="pse-logos">
+                <div class="pse-badge">PSE</div>
+                <div class="secure-badge">🔒 Pago Seguro SSL</div>
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/800px-Visa_Inc._logo.svg.png" height="20" alt="Visa" style="object-fit:contain;"/>
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/800px-Mastercard-logo.svg.png" height="25" alt="Mastercard" style="object-fit:contain;"/>
+            </div>
+            <button class="btn-pse" onclick="abrirPSE()">
+                🏦 Pagar con PSE (Débito)
+            </button>
+            <button class="btn-tarjeta" onclick="abrirTarjeta()">
+                💳 Pagar con Tarjeta
+            </button>
+            <p class="pse-disclaimer">🔒 Tus datos están protegidos con cifrado SSL de 256 bits. Procesado por ACH Colombia / PSE.</p>
+        </div>
+    </section>
+
+    <!-- MODAL PSE -->
+    <div class="modal-overlay" id="pse-modal">
+        <div class="pse-modal-box">
+            <button class="modal-close" onclick="cerrarModal('pse-modal')" style="color:#607060;">✕</button>
+            <h3>Pago por PSE</h3>
+            <p>Selecciona tu banco y completa los datos para continuar</p>
+            <div class="pse-input-group">
+                <label>Tipo de persona</label>
+                <select>
+                    <option>Persona Natural</option>
+                    <option>Persona Jurídica</option>
+                </select>
+            </div>
+            <div class="pse-input-group">
+                <label>Número de documento</label>
+                <input type="text" placeholder="Ej: 1234567890" />
+            </div>
+            <div class="pse-input-group">
+                <label>Correo electrónico</label>
+                <input type="email" placeholder="tu@correo.com" />
+            </div>
+            <p style="color:#607060;font-size:0.8rem;font-family:'Outfit',sans-serif;margin-bottom:0.75rem;">Selecciona tu banco:</p>
+            <div class="bank-grid">
+                <button class="bank-btn" onclick="selectBank(this)">Bancolombia</button>
+                <button class="bank-btn" onclick="selectBank(this)">Davivienda</button>
+                <button class="bank-btn" onclick="selectBank(this)">Banco de Bogotá</button>
+                <button class="bank-btn" onclick="selectBank(this)">BBVA</button>
+                <button class="bank-btn" onclick="selectBank(this)">Nequi</button>
+                <button class="bank-btn" onclick="selectBank(this)">Otro banco</button>
+            </div>
+            <button class="btn-confirmar-pse" onclick="confirmarPSE()">Continuar con PSE →</button>
+            <p style="text-align:center;font-size:0.7rem;color:#90a090;font-family:'Outfit',sans-serif;margin-top:1rem;">Serás redirigido al portal seguro de tu banco</p>
         </div>
     </div>
-</section>
 
-    <section id="aliados" class="container" style="padding: 60px 20px; text-align: center;">
-        <p class="hero-eyebrow" style="font-size: 0.7rem;">Alianzas Estratégicas</p>
+    <!-- MODAL TARJETA -->
+    <div class="modal-overlay" id="tarjeta-modal">
+        <div class="pse-modal-box">
+            <button class="modal-close" onclick="cerrarModal('tarjeta-modal')" style="color:#607060;">✕</button>
+            <h3>Pago con Tarjeta</h3>
+            <p>Ingresa los datos de tu tarjeta débito o crédito</p>
+            <div class="pse-input-group">
+                <label>Número de tarjeta</label>
+                <input type="text" placeholder="0000 0000 0000 0000" maxlength="19" oninput="formatCard(this)" />
+            </div>
+            <div class="pse-input-group">
+                <label>Nombre en la tarjeta</label>
+                <input type="text" placeholder="Como aparece en la tarjeta" />
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                <div class="pse-input-group">
+                    <label>Vencimiento</label>
+                    <input type="text" placeholder="MM/AA" maxlength="5" />
+                </div>
+                <div class="pse-input-group">
+                    <label>CVV</label>
+                    <input type="text" placeholder="***" maxlength="4" />
+                </div>
+            </div>
+            <div class="pse-input-group">
+                <label>Cuotas</label>
+                <select>
+                    <option>1 cuota (sin intereses)</option>
+                    <option>3 cuotas</option>
+                    <option>6 cuotas</option>
+                    <option>12 cuotas</option>
+                </select>
+            </div>
+            <button class="btn-confirmar-pse" onclick="confirmarTarjeta()">Pagar ahora 🔒</button>
+        </div>
+    </div>
+
+    <section id="aliados" class="container" style="padding:60px 20px;text-align:center;">
+        <p class="hero-eyebrow" style="font-size:0.7rem;">Alianzas Estratégicas</p>
         <div class="aliados-logos">
             <h3>Fundación Te Abrazo Colombia</h3>
             <span>|</span>
@@ -98,50 +741,379 @@
     </section>
 
     <script src="js/main.js"></script>
+
     <footer class="main-footer">
-    <div class="container footer-grid">
-        <div class="footer-brand">
-            <h2 class="nav-logo">SERVI<span>CHOCO</span></h2>
-            <p>Turismo regenerativo y comunitario en el corazón de la selva húmeda. Empoderando a la juventud de las cuencas del Pacífico.</p>
-            <div class="footer-socials">
-                <a href="#">Instagram</a>
-                <a href="#">Facebook</a>
-                <a href="#">WhatsApp</a>
+
+        <!-- Franja superior verde -->
+        <div class="footer-top-bar">
+            <div class="container footer-top-inner">
+                <div class="footer-top-text">
+                    <span>🌿 ¿Listo para tu aventura en el Chocó?</span>
+                    <p>Reserva ahora y sé parte del cambio comunitario</p>
+                </div>
+                <a href="#reservar" class="footer-cta-top">Reservar experiencia →</a>
             </div>
         </div>
 
-        <div class="footer-links">
-            <h3>Contenidos</h3>
-            <ul>
-                <li><a href="#hero">Inicio</a></li>
-                <li><a href="#nosotros">Nuestra Esencia</a></li>
-                <li><a href="#aliados">Fundación Te Abrazo</a></li>
-                <li><a href="#modelo-negocio">Modelo de Impacto</a></li>
-            </ul>
+        <!-- Cuerpo principal del footer -->
+        <div class="footer-main">
+            <div class="container footer-grid">
+
+                <!-- Columna 1: Marca -->
+                <div class="footer-brand">
+                    <div class="footer-logo">SERVI<span>CHOCO</span></div>
+                    <p class="footer-desc">Turismo regenerativo y comunitario liderado por jóvenes en el corazón de la selva húmeda del Pacífico colombiano.</p>
+                    <div class="footer-socials">
+                        <a href="#" class="social-btn" aria-label="Instagram">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+                        </a>
+                        <a href="#" class="social-btn" aria-label="Facebook">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+                        </a>
+                        <a href="https://wa.me/573100000000" class="social-btn" aria-label="WhatsApp">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                        </a>
+                        <a href="mailto:contacto@servichoco.com" class="social-btn" aria-label="Email">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Columna 2: Navegación -->
+                <div class="footer-col">
+                    <h4 class="footer-col-title">Navegar</h4>
+                    <ul class="footer-list">
+                        <li><a href="#hero">🏠 Inicio</a></li>
+                        <li><a href="#nosotros">👥 Quiénes Somos</a></li>
+                        <li><a href="#destinos">🌿 Experiencias</a></li>
+                        <li><a href="#mapa">🗺️ Mapa del Chocó</a></li>
+                        <li><a href="#reservar">📅 Cotizar y Reservar</a></li>
+                        <li><a href="#pago">💳 Pagar mi Reserva</a></li>
+                        <li><a href="#aliados">🤝 Aliados</a></li>
+                    </ul>
+                </div>
+
+                <!-- Columna 3: Destinos -->
+                <div class="footer-col">
+                    <h4 class="footer-col-title">Destinos del Pacífico</h4>
+                    <ul class="footer-list">
+                        <li><a href="#">🐋 Nuquí — Ballenas & Surf</a></li>
+                        <li><a href="#">🐬 Bahía Solano — Buceo</a></li>
+                        <li><a href="#">💧 Tutunendo — Cascadas</a></li>
+                        <li><a href="#">🌿 Bajo Baudó — Emberá</a></li>
+                        <li><a href="#">🎭 Istmina — Cultura Afro</a></li>
+                        <li><a href="#">🐢 Acandí — Caribe</a></li>
+                        <li><a href="#">🏞️ Riosucio — Los Katíos</a></li>
+                    </ul>
+                </div>
+
+                <!-- Columna 4: Contacto -->
+                <div class="footer-col">
+                    <h4 class="footer-col-title">Contacto</h4>
+                    <ul class="footer-contact-list">
+                        <li>
+                            <span class="contact-icon">📍</span>
+                            <span>Quibdó, Chocó<br>Colombia</span>
+                        </li>
+                        <li>
+                            <span class="contact-icon">📧</span>
+                            <a href="mailto:contacto@servichoco.com">contacto@servichoco.com</a>
+                        </li>
+                        <li>
+                            <span class="contact-icon">📱</span>
+                            <a href="https://wa.me/573100000000">+57 310 000 0000</a>
+                        </li>
+                        <li>
+                            <span class="contact-icon">⏰</span>
+                            <span>Lun – Sáb<br>8:00 am – 6:00 pm</span>
+                        </li>
+                    </ul>
+                    <a href="https://wa.me/573100000000" class="footer-whatsapp-btn">
+                        💬 Habla con un guía
+                    </a>
+                </div>
+
+            </div>
         </div>
 
-        <div class="footer-links">
-            <h3>Destinos del Pacífico</h3>
-            <ul>
-                <li><a href="#">Tutunendo (Atrato)</a></li>
-                <li><a href="#">Bajo Baudó</a></li>
-                <li><a href="#">Bahía Solano</a></li>
-                <li><a href="#">Istmina (San Juan)</a></li>
-                <li><a href="#">Nuquí</a></li>
-            </ul>
+        <!-- Divider -->
+        <div class="footer-divider"></div>
+
+        <!-- Pie final -->
+        <div class="footer-bottom">
+            <div class="container footer-bottom-inner">
+                <p>© 2026 <strong>SERVI_CHOCO</strong> — Hackathon Pacífico. Todos los derechos reservados.</p>
+                <div class="footer-bottom-links">
+                    <a href="#">Política de privacidad</a>
+                    <span>·</span>
+                    <a href="#">Términos de uso</a>
+                    <span>·</span>
+                    <a href="#">Política de cookies</a>
+                </div>
+                <div class="footer-allies">
+                    <span>Aliados:</span>
+                    <strong>Fundación Te Abrazo Colombia</strong>
+                    <span>·</span>
+                    <strong>Comunidades del Pacífico</strong>
+                </div>
+            </div>
         </div>
 
-        <div class="footer-contact">
-            <h3>Contacto Directo</h3>
-            <p>📍 Quibdó, Chocó - Colombia</p>
-            <p>📧 contacto@servichoco.com</p>
-            <a href="https://wa.me/573100000000" class="footer-cta">Habla con un guía</a>
+    </footer>
+
+    <!-- ====== 4. ASISTENTE IA (GEMINI) ====== -->
+    <div class="ai-widget">
+        <div class="ai-chat-window" id="ai-chat">
+            <div class="ai-chat-header">
+                <div class="ai-avatar">🌿</div>
+                <div class="ai-info">
+                    <div class="ai-name">Chocó Guide IA</div>
+                    <div class="ai-status">● En línea · Powered by Gemini</div>
+                </div>
+                <button class="ai-close" onclick="toggleChat()">✕</button>
+            </div>
+            <div class="ai-messages" id="ai-messages">
+                <div class="msg bot">¡Hola! 🌿 Soy tu asistente virtual de SERVI_CHOCO. Puedo ayudarte a planear tu viaje al Chocó, contarte sobre nuestros destinos y experiencias. ¿En qué te ayudo hoy?</div>
+            </div>
+            <div class="ai-suggestions">
+                <button class="suggestion-chip" onclick="sendSuggestion(this)">¿Qué destinos hay?</button>
+                <button class="suggestion-chip" onclick="sendSuggestion(this)">¿Cuánto cuesta?</button>
+                <button class="suggestion-chip" onclick="sendSuggestion(this)">¿Cómo llego?</button>
+                <button class="suggestion-chip" onclick="sendSuggestion(this)">¿Qué llevar?</button>
+            </div>
+            <div class="ai-input-area">
+                <input class="ai-input" id="ai-input" placeholder="Escribe tu pregunta..." onkeydown="if(event.key==='Enter') sendMessage()" />
+                <button class="ai-send" onclick="sendMessage()">➤</button>
+            </div>
+            <div class="gemini-badge">Asistente potenciado por <span>Google Gemini</span></div>
         </div>
+        <button class="ai-toggle" onclick="toggleChat()" title="Asistente IA">🌿</button>
     </div>
 
-    <div class="footer-bottom">
-        <p>&copy; 2026 SERVI_CHOCO — Hackathon Pacífico. Todos los derechos reservados.</p>
-    </div>
-</footer>
+    <!-- Leaflet JS para mapa -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+    // ===== DATOS DESTINOS CHOCÓ =====
+    const destinos = [
+        { nombre: "Quibdó", tipo: "Capital departamental", lat: 5.6919, lng: -76.6583, precio: 280000, desc: "Capital del Chocó, puerta de entrada a la selva húmeda del Pacífico.", emoji: "🏙️" },
+        { nombre: "Nuquí", tipo: "Paraíso de ballenas y surf", lat: 5.7133, lng: -77.2722, precio: 450000, desc: "Destino icónico para avistamiento de ballenas jorobadas (Jul–Oct) y surf.", emoji: "🐋" },
+        { nombre: "Bahía Solano", tipo: "Pesca y naturaleza", lat: 6.2269, lng: -77.4017, precio: 420000, desc: "Pesca deportiva, buceo y avistamiento de delfines en el Pacífico.", emoji: "🐬" },
+        { nombre: "Tutunendo", tipo: "Turismo de agua dulce", lat: 5.7667, lng: -76.5333, precio: 180000, desc: "Cascadas, ríos cristalinos y comunidades afro. Uno de los lugares más lluviosos del mundo.", emoji: "💧" },
+        { nombre: "Istmina", tipo: "Minería y patrimonio", lat: 5.1667, lng: -76.6833, precio: 200000, desc: "Cuna cultural del San Juan, con artesanías y música del Pacífico.", emoji: "🎭" },
+        { nombre: "Bajo Baudó", tipo: "Selva y ríos", lat: 4.9833, lng: -77.0667, precio: 350000, desc: "Comunidades indígenas Emberá y selva primaria intacta.", emoji: "🌿" },
+        { nombre: "Acandí", tipo: "Caribe chocoano", lat: 8.5167, lng: -77.2833, precio: 380000, desc: "Playas del Caribe, tortugas y conexión con el Darién.", emoji: "🐢" },
+        { nombre: "Riosucio", tipo: "Darién y frontera", lat: 7.4333, lng: -77.1167, precio: 320000, desc: "Puerta al Parque Nacional Natural Los Katíos, patrimonio UNESCO.", emoji: "🏞️" },
+        { nombre: "El Carmen de Atrato", tipo: "Alto Atrato", lat: 5.9167, lng: -76.1333, precio: 160000, desc: "Nacimiento del río Atrato y paisajes de páramo y selva.", emoji: "🌊" },
+        { nombre: "Tadó", tipo: "Cultura y río San Juan", lat: 5.2667, lng: -76.5667, precio: 170000, desc: "Música, chirimía y festividades del Pacífico chocoano.", emoji: "🎵" },
+        { nombre: "Condoto", tipo: "Platino y minería", lat: 5.1000, lng: -76.6333, precio: 190000, desc: "Capital mundial del platino. Cultura afro e historia minera.", emoji: "💎" },
+        { nombre: "Sipí", tipo: "Cascadas y aventura", lat: 4.6667, lng: -76.6333, precio: 300000, desc: "Cascada de 70m en plena selva. Ecoturismo de aventura.", emoji: "🏔️" },
+    ];
+
+    // ===== MAPA LEAFLET =====
+    let map;
+    let activeMarker = null;
+
+    function initMap() {
+        map = L.map('choco-map', {
+            center: [5.8, -76.9],
+            zoom: 7,
+            zoomControl: true
+        });
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        const destList = document.getElementById('dest-list');
+
+        destinos.forEach((d, i) => {
+            // Marker
+            const marker = L.circleMarker([d.lat, d.lng], {
+                radius: 10,
+                fillColor: '#4aab5a',
+                color: '#fff',
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.85
+            }).addTo(map);
+
+            marker.bindPopup(`
+                <div style="font-family:'Outfit',sans-serif;min-width:180px;">
+                    <strong style="font-size:1rem;color:#1a3a1a;">${d.emoji} ${d.nombre}</strong><br>
+                    <span style="color:#2d7a3a;font-size:0.78rem;">${d.tipo}</span><br>
+                    <p style="font-size:0.8rem;color:#445;margin:6px 0;">${d.desc}</p>
+                    <strong style="color:#2d7a3a;">Desde COP $${d.precio.toLocaleString()}/persona</strong>
+                </div>
+            `);
+
+            // Sidebar item
+            const item = document.createElement('div');
+            item.className = 'dest-item';
+            item.innerHTML = `<div class="dest-name">${d.emoji} ${d.nombre}</div><div class="dest-type">${d.tipo}</div>`;
+            item.onclick = () => {
+                map.setView([d.lat, d.lng], 11);
+                marker.openPopup();
+                document.querySelectorAll('.dest-item').forEach(el => el.classList.remove('active'));
+                item.classList.add('active');
+            };
+            destList.appendChild(item);
+        });
+    }
+
+    // ===== COTIZADOR =====
+    function buscarDisponibilidad() {
+        const destino = document.getElementById('destino-select').value;
+        const llegada = document.getElementById('fecha-llegada').value;
+        const salida = document.getElementById('fecha-salida').value;
+        const viajeros = parseInt(document.getElementById('viajeros').value);
+
+        if (!destino) { alert('Por favor selecciona un destino 🌿'); return; }
+        if (!llegada || !salida) { alert('Por favor selecciona las fechas de tu viaje 📅'); return; }
+        if (new Date(salida) <= new Date(llegada)) { alert('La fecha de salida debe ser posterior a la llegada'); return; }
+
+        const dias = Math.ceil((new Date(salida) - new Date(llegada)) / (1000*60*60*24));
+        const destData = destinos.find(d => d.nombre === destino) || { precio: 250000 };
+        const precioPorPersona = destData.precio * dias;
+        const total = precioPorPersona * viajeros;
+
+        const fechaLlegadaF = new Date(llegada + 'T00:00:00').toLocaleDateString('es-CO', {day:'numeric',month:'long',year:'numeric'});
+        const fechaSalidaF = new Date(salida + 'T00:00:00').toLocaleDateString('es-CO', {day:'numeric',month:'long',year:'numeric'});
+
+        document.getElementById('cotizacion-detalles').innerHTML = `
+            <div class="modal-detail"><span>Destino</span><strong>${destino}</strong></div>
+            <div class="modal-detail"><span>Llegada</span><strong>${fechaLlegadaF}</strong></div>
+            <div class="modal-detail"><span>Salida</span><strong>${fechaSalidaF}</strong></div>
+            <div class="modal-detail"><span>Duración</span><strong>${dias} noche${dias>1?'s':''}</strong></div>
+            <div class="modal-detail"><span>Viajeros</span><strong>${viajeros} persona${viajeros>1?'s':''}</strong></div>
+            <div class="modal-detail"><span>Precio por persona/noche</span><strong>COP $${destData.precio.toLocaleString()}</strong></div>
+        `;
+        document.getElementById('cotizacion-total').textContent = `COP $${total.toLocaleString()}`;
+        document.getElementById('cotizacion-modal').classList.add('active');
+    }
+
+    function cerrarModal(id) {
+        document.getElementById(id).classList.remove('active');
+    }
+
+    function irAPago() {
+        cerrarModal('cotizacion-modal');
+        document.getElementById('pago').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // ===== PSE =====
+    function abrirPSE() {
+        document.getElementById('pse-modal').classList.add('active');
+    }
+
+    function abrirTarjeta() {
+        document.getElementById('tarjeta-modal').classList.add('active');
+    }
+
+    function selectBank(btn) {
+        document.querySelectorAll('.bank-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+    }
+
+    function confirmarPSE() {
+        alert('✅ Serás redirigido al portal seguro de tu banco para completar el pago.\n\n⚠️ Nota: Integración PSE real requiere registro en ACH Colombia (www.achcolombia.com.co)');
+        cerrarModal('pse-modal');
+    }
+
+    function confirmarTarjeta() {
+        alert('✅ Procesando pago con tarjeta...\n\n⚠️ Nota: Para pagos reales integra una pasarela como Wompi, PayU o MercadoPago.');
+        cerrarModal('tarjeta-modal');
+    }
+
+    function formatCard(input) {
+        let val = input.value.replace(/\D/g, '').substring(0, 16);
+        input.value = val.replace(/(.{4})/g, '$1 ').trim();
+    }
+
+    // ===== ASISTENTE IA GEMINI =====
+    const GEMINI_API_KEY = 'TU_API_KEY_AQUI'; // Reemplaza con tu API key de Google AI Studio
+
+    const systemContext = `Eres "Chocó Guide", el asistente virtual de SERVI_CHOCO, una plataforma de turismo comunitario y regenerativo en el departamento del Chocó, Colombia. 
+    Ayudas a turistas con información sobre destinos, precios, actividades, cómo llegar, qué llevar, clima, cultura local y reservas.
+    Los principales destinos son: Nuquí, Bahía Solano, Tutunendo, Istmina, Bajo Baudó, Acandí, Riosucio, Quibdó.
+    Los precios van desde COP $160,000 hasta $450,000 por persona por noche según el destino.
+    El turismo incluye: avistamiento de ballenas (Jul-Oct), surf, senderismo, ríos, cascadas, comunidades Emberá, cultura afro, pesca.
+    Responde siempre en español, de forma cálida, breve y útil. Máximo 3-4 oraciones por respuesta.`;
+
+    let chatHistory = [];
+
+    function toggleChat() {
+        const chat = document.getElementById('ai-chat');
+        chat.classList.toggle('open');
+    }
+
+    function sendSuggestion(btn) {
+        document.getElementById('ai-input').value = btn.textContent;
+        sendMessage();
+    }
+
+    async function sendMessage() {
+        const input = document.getElementById('ai-input');
+        const msg = input.value.trim();
+        if (!msg) return;
+
+        addMessage(msg, 'user');
+        input.value = '';
+
+        const typingEl = addMessage('Escribiendo...', 'bot typing');
+
+        try {
+            chatHistory.push({ role: "user", parts: [{ text: msg }] });
+
+            const response = await fetch(
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        system_instruction: { parts: [{ text: systemContext }] },
+                        contents: chatHistory
+                    })
+                }
+            );
+
+            const data = await response.json();
+            typingEl.remove();
+
+            let botReply = '¡Hola! Para usar el asistente IA, configura tu API Key de Gemini en el código. 🌿';
+            if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
+                botReply = data.candidates[0].content.parts[0].text;
+                chatHistory.push({ role: "model", parts: [{ text: botReply }] });
+            }
+
+            addMessage(botReply, 'bot');
+        } catch (err) {
+            typingEl.remove();
+            addMessage('Lo siento, hay un problema de conexión. Para el asistente IA, configura tu API Key de Google Gemini en el archivo index.html 🔧', 'bot');
+        }
+    }
+
+    function addMessage(text, type) {
+        const messages = document.getElementById('ai-messages');
+        const el = document.createElement('div');
+        el.className = `msg ${type}`;
+        el.textContent = text;
+        messages.appendChild(el);
+        messages.scrollTop = messages.scrollHeight;
+        return el;
+    }
+
+    // Cerrar modales al hacer click fuera
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) overlay.classList.remove('active');
+        });
+    });
+
+    // Inicializar mapa cuando cargue la página
+    window.addEventListener('load', () => {
+        setTimeout(initMap, 300);
+    });
+    </script>
 </body>
 </html>
