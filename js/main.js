@@ -379,10 +379,6 @@ function addMsg(text,type){const b=document.getElementById('ai-msgs');const el=d
   const state = {
     musicOn: false,
     currentSong: 0,
-    songs: [
-      // Puedes enlazar a archivos reales si los tienes
-      { name: 'Sonidos del Chocó', src: '' },
-    ],
   };
 
   // Reproductor simple (sin fuente de audio real aquí; placeholder)
@@ -393,7 +389,7 @@ function addMsg(text,type){const b=document.getElementById('ai-msgs');const el=d
     if(state.musicOn){
       icon.textContent = '❚❚';
       btn.setAttribute('aria-label','Pausar música');
-      // Aquí podrías iniciar un Audio(ctx) si tienes fuente
+      //iniciar un Audio
     } else {
       icon.textContent = '▶';
       btn.setAttribute('aria-label','Reproducir música');
