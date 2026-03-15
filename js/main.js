@@ -32,9 +32,9 @@ const destinos=[
     heroImg:"https://images.unsplash.com/photo-1707502238464-de77c43a6778?q=80",
     fotos:[
       "https://images.pexels.com/photos/3635870/pexels-photo-3635870.jpeg",
-      "https://images.unsplash.com/photo-1605001011156-cbf0b0f67a51?w=500&q=75",
-      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500&q=75",
-      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=500&q=75",
+      "https://images.pexels.com/photos/13822576/pexels-photo-13822576.jpeg",
+      "https://images.unsplash.com/photo-1707502275695-2258b614753f?q=80",
+      "https://colombia.travel/sites/default/files/interna_41.jpg",
     ],
     videoId:"x8BS89foNFI",
     textoTitulo:'Nuquí: donde las ballenas <em>danzan</em> ante la selva',
@@ -57,14 +57,14 @@ const destinos=[
     badge:"Pacífico colombiano · Chocó",
     subtitulo:"El lugar donde las ballenas se encuentran con la selva",
     chips:["🐋 Ballenas Jul–Oct","🐬 Delfines","🤿 Buceo","🎣 Pesca deportiva","🌊 Playa El Almejal","🦜 Aves exóticas"],
-    heroImg:"https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?w=900&q=80",
+    heroImg:"https://images.pexels.com/photos/13820932/pexels-photo-13820932.jpeg",
     fotos:[
-      "https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?w=800&q=75",
-      "https://images.unsplash.com/photo-1582967788606-a171c1080cb0?w=500&q=75",
-      "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=500&q=75",
-      "https://images.unsplash.com/photo-1540202404-1b927e27fa8b?w=500&q=75",
+      "https://images.pexels.com/photos/13821031/pexels-photo-13821031.jpeg",
+      "https://static.wixstatic.com/media/1ad7b5_c7f25441dd05483e81b1699b1517dd27~mv2.jpg/v1/fill/w_740,h_555,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/1ad7b5_c7f25441dd05483e81b1699b1517dd27~mv2.jpg",
+      "https://images.pexels.com/photos/13821028/pexels-photo-13821028.jpeg",
+      "https://fontur.com.co/sites/default/files/blog/images/bahia_solano_3_1.jpg",
     ],
-    videoId:"qV7v6l9Hmqg",
+    videoId:"6ydw5j8UJbA",
     textoTitulo:'Bahía Solano: el lugar donde las ballenas se encuentran con <em>la selva</em>',
     texto:[
       "En el corazón del Pacífico colombiano, en el departamento del Chocó, se encuentra uno de los destinos naturales más fascinantes del país: <strong>Bahía Solano</strong>. Este paraíso escondido combina selva tropical, playas vírgenes y uno de los espectáculos naturales más impresionantes del planeta: la llegada de las ballenas jorobadas.",
@@ -445,12 +445,6 @@ function addMsg(text,type){const b=document.getElementById('ai-msgs');const el=d
       { titulo: 'Bahía Solano — Buceo', descripcion: 'Biodiversidad marina y manglares', img: '' },
       { titulo: 'Tutunendo — Cascadas', descripcion: 'Ríos y cascadas exuberantes', img: '' }
     ];
-    datos.forEach(d => {
-      const card = document.createElement('div');
-      card.className = 'destino-card';
-      card.innerHTML = `<h4>${d.titulo}</h4><p>${d.descripcion}</p>`;
-      grid.appendChild(card);
-    });
   }
 
   // Mapa listado
