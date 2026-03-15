@@ -29,14 +29,14 @@ const destinos=[
     badge:"Pacífico colombiano · Chocó",
     subtitulo:"El paraíso del surf y las ballenas jorobadas",
     chips:["🐋 Ballenas Jul–Oct","🏄 Surf","🌊 Playas vírgenes","🌿 Parque Utría","🐢 Tortugas","📸 Fotografía"],
-    heroImg:"https://images.unsplash.com/photo-1559825481-12a05cc00344?w=900&q=80",
+    heroImg:"https://images.unsplash.com/photo-1707502238464-de77c43a6778?q=80",
     fotos:[
-      "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=800&q=75",
+      "https://images.pexels.com/photos/3635870/pexels-photo-3635870.jpeg",
       "https://images.unsplash.com/photo-1605001011156-cbf0b0f67a51?w=500&q=75",
       "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500&q=75",
       "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=500&q=75",
     ],
-    videoId:"LM7rFgAgx-Y",
+    videoId:"x8BS89foNFI",
     textoTitulo:'Nuquí: donde las ballenas <em>danzan</em> ante la selva',
     texto:[
       "En el corazón del Pacífico colombiano, rodeado de selva húmeda tropical y bañado por las aguas del océano, se encuentra <strong>Nuquí</strong>, uno de los secretos mejor guardados de Colombia y un destino de talla mundial para el ecoturismo.",
