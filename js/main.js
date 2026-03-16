@@ -56,7 +56,7 @@ const destinos=[
     bg:"bg2",
     badge:"Pacífico colombiano · Chocó",
     subtitulo:"El lugar donde las ballenas se encuentran con la selva",
-    chips:["🐋 Ballenas Jul–Oct","🐬 Delfines","🤿 Buceo","🎣 Pesca deportiva","🌊 Playa El Almejal","🦜 Aves exóticas"],
+    chips:["🐋 Ballenas Jul-Oct","🐬 Delfines","🤿 Buceo","🎣 Pesca deportiva","🌊 Playa El Almejal","🦜 Aves exóticas"],
     heroImg:"https://images.pexels.com/photos/13820932/pexels-photo-13820932.jpeg",
     fotos:[
       "https://images.pexels.com/photos/13821031/pexels-photo-13821031.jpeg",
@@ -86,14 +86,14 @@ const destinos=[
     badge:"Alto Atrato · Chocó",
     subtitulo:"El lugar más lluvioso del mundo y sus cascadas de cristal",
     chips:["💧 Cascadas","🌧️ Selva húmeda","👥 Comunidades afro","🚣 Ríos","🦋 Biodiversidad","🌺 Flora tropical"],
-    heroImg:"https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=900&q=80",
+    heroImg:"../imagenes/destinos/tutunendo/tutunendo1.jpg",
     fotos:[
       "../imagenes/IMG_20230507_150244.jpg",
       "../imagenes/IMG_20230603_073646.jpg",
       "../imagenes/IMG_20230727_161222.jpg",
-      "../imagenes/IMG_20230728_124930.jpg",
+      "../imagenes/IMG_20230424_160206.jpg",
     ],
-    videoId:"X48VuDVv0do",
+    videoId:"_vw7OYoTA18",
     textoTitulo:'Tutunendo: donde el agua <em>da vida</em> a la selva del Atrato',
     texto:[
       "<strong>Tutunendo</strong> es uno de los lugares más lluviosos del planeta, un hecho que lejos de ser una curiosidad, lo convierte en un ecosistema de una riqueza natural sin igual. Aquí, el agua no solo cae del cielo, sino que brota de la tierra en forma de cascadas cristalinas, ríos transparentes y manantiales escondidos entre la vegetación.",
@@ -287,10 +287,13 @@ const todos=[
 
 function initMap(){
   const m=L.map('choco-map',{center:[5.8,-76.9],zoom:7});
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'© CartoDB'}).addTo(m);
+  //L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'© CartoDB'}).addTo(m);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{ attribution:'Tiles © Esri'}).addTo(m);
   const list=document.getElementById('mapa-list');
   todos.forEach(d=>{
-    const mk=L.circleMarker([d.lat,d.lng],{radius:9,fillColor:'#c8a84b',color:'#05100a',weight:2,fillOpacity:.9}).addTo(m);
+    //const mk=L.circleMarker([d.lat,d.lng],{radius:9,fillColor:'#c8a84b',color:'#05100a',weight:2,fillOpacity:.9}).addTo(m);
+    const icon = L.divIcon({  className:'map-marker',  html:`<div class="marker">${d.emoji}</div>`,  iconSize:[30,30],  iconAnchor:[15,15]});
+    const mk = L.marker([d.lat,d.lng],{icon}).addTo(m);
     mk.bindPopup(`<div style="font-family:'DM Sans',sans-serif;padding:4px;"><strong style="font-size:1rem;">${d.emoji} ${d.nombre}</strong><br><span style="color:#c8a84b;font-size:.75rem;">${d.tipo}</span><p style="font-size:.8rem;margin:6px 0 4px;color:#c0d8c0;">Desde COP $${d.precio.toLocaleString()}/noche</p></div>`);
     const item=document.createElement('div');
     item.className='mapa-item';
@@ -300,6 +303,7 @@ function initMap(){
   });
 }
 window.addEventListener('load',()=>setTimeout(initMap,400));
+
 
 // MODALES
 function openModal(id){document.getElementById(id).classList.add('open');}
@@ -342,8 +346,7 @@ async function sendAI(){
 }
 function addMsg(text,type){const b=document.getElementById('ai-msgs');const el=document.createElement('div');el.className=`ai-msg ${type}`;el.textContent=text;b.appendChild(el);b.scrollTop=b.scrollHeight;return el;}
 
-// js/utils.js puede contener utilidades como query, modales, etc.
-// Asegúrate de incluir este archivo antes de usar en main.js si decides separarlo.
+/////////////////////////// 
 
 (function(){
   // State
@@ -468,6 +471,6 @@ function addMsg(text,type){const b=document.getElementById('ai-msgs');const el=d
     });
 
     renderDestinos();
-    renderMapaList();
+    //renderMapaList();
   });
 })();
