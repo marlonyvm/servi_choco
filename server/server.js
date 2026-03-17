@@ -10,12 +10,11 @@ app.use(express.json());
 /* CONEXIÓN MYSQL */
 
 const db = mysql.createPool({
-  host: "localhost",
-  user: "root",
-  password: "servi_choco",
-  database: "SERVI_CHOCO",
-  waitForConnections: true,
-  connectionLimit: 10
+  host: process.env.MYSQLHOST || "localhost",
+  user: process.env.MYSQLUSER || "root",
+  password: process.env.MYSQLPASSWORD || "servi_choco",
+  database: process.env.MYSQLDATABASE || "SERVI_CHOCO",
+  port: process.env.MYSQLPORT || 3306
 });
 
 /* LOG DE PETICIONES */
