@@ -1,3 +1,4 @@
+const PORT = process.env.PORT || 3000;
 const express = require("express");
 const mysql = require("mysql2/promise");
 const cors = require("cors");
@@ -9,13 +10,21 @@ app.use(express.json());
 /* CONEXIÓN MYSQL */
 
 const db = mysql.createPool({
-  host: "localhost",
-  user: "root",
-  password: "servi_choco",
-  database: "SERVI_CHOCO",
-  waitForConnections: true,
-  connectionLimit: 10
+  host: process.env.MYSQLHOST || "localhost",
+  user: process.env.MYSQLUSER || "root",
+  password: process.env.MYSQLPASSWORD || "servi_choco",
+  database: process.env.MYSQLDATABASE || "SERVI_CHOCO",
+  port: process.env.MYSQLPORT || 3306
 });
+
+db.getConnection()
+  .then(conn => {
+    console.log("✅ Conectado a MySQL");
+    conn.release();
+  })
+  .catch(err => {
+    console.error("❌ Error conectando a MySQL:", err);
+  });
 
 /* LOG DE PETICIONES */
 
@@ -110,11 +119,16 @@ app.get("/destinos/:id", async (req,res)=>{
 
 });
 
+app.get("/", (req, res) => {
+  res.send("API ServiChocó funcionando 🚀");
+});
 
 /* ===============================
    INICIAR SERVIDOR
 ================================ */
 
-app.listen(3000, ()=>{
-  console.log("Servidor corriendo en http://localhost:3000");
+
+
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Servidor corriendo en puerto ${PORT}`);
 });
