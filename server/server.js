@@ -119,6 +119,9 @@ app.get("/destinos/:id", async (req,res)=>{
 
 });
 
+app.get("/", (req, res) => {
+  res.send("API ServiChocó funcionando 🚀");
+});
 
 /* ===============================
    INICIAR SERVIDOR
