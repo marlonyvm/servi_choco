@@ -1,3 +1,4 @@
+const API = "https://servichoco-production.up.railway.app"; 
 // CURSOR
 const cur=document.getElementById('cursor'),ring=document.getElementById('cursor-ring');
 document.addEventListener('mousemove',e=>{
@@ -20,7 +21,7 @@ document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
 
 async function cargarDestinos(){
 
-  const res = await fetch("http://localhost:3000/destinos");
+  const res = await fetch(`${API}/destinos`);
   const destinos = await res.json();
 
   return destinos;
@@ -30,7 +31,7 @@ async function cargarDestinos(){
 // FUNCIÓN ABRIR MODAL DESTINO
 async function abrirDestino(id){
 
-  const res = await fetch(`http://localhost:3000/destinos/${id}`);
+  const res = await fetch(`${API}/destinos/${id}`);
   const data = await res.json();
 
   document.getElementById('dest-hero-img').src = data.hero_img;
