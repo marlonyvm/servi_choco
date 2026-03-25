@@ -213,7 +213,7 @@ app.post("/api/auth/login", async (req, res) => {
    INICIAR SERVIDOR
 ================================ */
 
-
+console.log("bcrypt cargado:", require("bcryptjs"));
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Servidor corriendo en puerto ${PORT}`);
